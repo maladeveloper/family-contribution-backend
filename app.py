@@ -42,6 +42,32 @@ def find_tax_amount():
     #Return the data with now the tax there 
     return jsonify(data)
 
+@app.route('/transformDate', methods=["POST"])
+@cross_origin()
+def transform_date_route():
+    
+    #Get the date string from the request
+    date = request.json["info"]
+
+    #Transform the date into display date
+    transformed_date_dict = transform_date([date])
+    
+    #Return the data with now the tax there 
+    return jsonify(transformed_date_dict)
+
+@app.route('/refreshDates', methods=["POST"])
+@cross_origin()
+def refresh_dates():
+
+    #Get the previous dates from the request
+    data = request.json["info"]
+
+    #Push the data to where it belongs
+    db.collection(u'HistoryData').document("PreviousDates").set(data)
+
+    return jsonify(True)
+
+
 
 @app.route('/HistoryData/PreviousDates', methods=["GET"])
 @cross_origin()
