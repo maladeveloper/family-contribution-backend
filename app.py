@@ -57,14 +57,17 @@ def get_historic_date_data():
     all_dates = doc.get(field_id)
 
     #Transform the date into display date
-    transform_date(all_dates)
+    all_dates_dict = transform_date(all_dates)
 
     #Return this data as json
-    return jsonify(all_dates)
+    return jsonify(all_dates_dict)
 
 #Function to change date to display date 
 def transform_date(date_arr):
     
+    #Establish a dictionary to hold each date to its display
+    date_dict = dict()
+
     #For each date 
     for i in range(len(date_arr)):
 
@@ -93,8 +96,10 @@ def transform_date(date_arr):
                 #Otherwise no hyphen 
                 disp_date = disp_date + n_split_date
         
-        #Replace the former date with the new
-        date_arr[i] = {disp_date:original_date}
+        #Add it to the dictionary
+        date_dict[disp_date] = original_date
+
+    return date_dict
 
 
 
