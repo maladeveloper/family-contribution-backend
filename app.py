@@ -6,7 +6,7 @@ import firebase_admin
 from firebase_admin import credentials
 import firebase_admin
 from firebase_admin import credentials, firestore
-
+from datetime import datetime
 
 
 #VARIABLES
@@ -53,8 +53,48 @@ def get_historic_date_data():
     #Get the document from the database
     doc = db.collection(u'HistoryData').document("PreviousDates").get()
 
+    #Get all the dates
+    all_dates = doc.get(field_id)
+
+    #Transform the date into display date
+    transform_date(all_dates)
+
     #Return this data as json
-    return jsonify(doc.get(field_id))
+    return jsonify(all_dates)
+
+#Function to change date to display date 
+def transform_date(date_arr):
+    
+    #For each date 
+    for i in range(len(date_arr)):
+
+        #Get the date in the format now
+        original_date = date_arr[i]
+
+        #Split the
+        og_split_dates =  original_date.split('-')
+
+        #New display date
+        disp_date =''
+
+        #For each of the dates
+        for n in range(len(og_split_dates)):
+
+            #Get the split date
+            og_split_date = og_split_dates[n]
+
+            #Convert it to display format
+            n_split_date = datetime.strptime(og_split_date, '%d/%m/%Y').strftime('%d %b  %y')
+
+            #If it is the second date, add a hyphen before
+            if n!= 0:
+                disp_date = disp_date+'  -  '+ n_split_date
+            else:
+                #Otherwise no hyphen 
+                disp_date = disp_date + n_split_date
+        
+        #Replace the former date with the new
+        date_arr[i] = {disp_date:original_date}
 
 
 
