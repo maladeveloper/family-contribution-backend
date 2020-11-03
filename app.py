@@ -55,6 +55,19 @@ def transform_date_route():
     #Return the data with now the tax there 
     return jsonify(transformed_date_dict)
 
+'''
+Gets an object with 
+{
+    displayStr1:dateStr1, 
+    displayStr2:dateStr2,
+    ...
+}
+and pushes it to database as
+{
+    dateStr1: true,
+    dateStr2: true,
+}
+'''
 @app.route('/refreshDates', methods=["POST"])
 @cross_origin()
 def refresh_dates():
@@ -62,31 +75,52 @@ def refresh_dates():
     #Get the previous dates from the request
     data = request.json["info"]
 
-    #Push the data to where it belongs
-    db.collection(u'HistoryData').document("PreviousDates").set(data)
+    #Make the dictionary with the data that is needed to push
+    dates_dict = dict()
+
+    #Get the values from this dictionary
+    for k,v in data.items():
+
+        #Set the value as true in the new dict
+        dates_dict[v] = True
+
+
+    #Push the dates_dict data
+    db.collection(u'HistoryData').document("PreviousDates").set(dates_dict)
 
     return jsonify(True)
 
 
-
-@app.route('/HistoryData/PreviousDates', methods=["GET"])
+'''
+Gets the previouse dates from the database in format
+{
+    dateStr1: true,
+    dateStr2: true,
+}
+and reformats it to the display version
+{
+    displayStr1:dateStr1, 
+    displayStr2:dateStr2,
+    ...
+}
+and sends it to caller.
+'''
+@app.route('/previousDates', methods=["GET"])
 @cross_origin()
 def get_historic_date_data():
 
-    #Get the for the documents
-    field_id = request.args["id"]
-
     #Get the document from the database
-    doc = db.collection(u'HistoryData').document("PreviousDates").get()
+    all_dates = db.collection(u'HistoryData').document("PreviousDates").get()
 
-    #Get all the dates
-    all_dates = doc.get(field_id)
+    #Change it to a dictionary
+    all_dates = all_dates.to_dict()
 
     #Transform the date into display date
-    all_dates_dict = transform_date(all_dates)
+    all_dates_dict = transform_date(list(all_dates.keys()))
 
     #Return this data as json
     return jsonify(all_dates_dict)
+
 
 #Function to change date to display date 
 def transform_date(date_arr):
