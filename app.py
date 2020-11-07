@@ -119,7 +119,17 @@ def get_date_user_specific_data():
     user_id = request.args.get("userId")
 
     #Make the call to db to get the date document
-    date_info = db.collection('DateSpecificData').document(date).get().to_dict()
+    date_info = db.collection('DateSpecificData').document(date).get()
+
+    #Check if the date info exists
+    if date_info.exists:
+
+        #If so then change the data into a dictionary
+        date_info = date_info.to_dict()
+
+    #Otherwise return false
+    else:
+        return jsonify(False)
 
     #Only return the user in information
     return jsonify(date_info[user_id])
