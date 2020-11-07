@@ -96,6 +96,36 @@ def get_historic_date_data():
     #Return this data as json
     return jsonify(all_dates)
 
+'''
+Find the date data based primarily on the date and the then on the user id.
+Input as - 
+specified date,user id, 
+
+Output- 
+Date, user information.
+
+'''
+@app.route('/getDateUserSpecificData', methods=["GET"])
+@cross_origin()
+def get_date_user_specific_data():
+
+    #Get the date
+    date = request.args.get("date")
+
+    #Replace the / with a blank in string
+    date = date.replace('/', '')
+
+    #Get the user id
+    user_id = request.args.get("userId")
+
+    #Make the call to db to get the date document
+    date_info = db.collection('DateSpecificData').document(date).get().to_dict()
+
+    #Only return the user in information
+    return jsonify(date_info[user_id])
+
+
+
 
 
 if __name__ == '__main__':
