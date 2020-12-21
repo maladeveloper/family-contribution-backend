@@ -84,8 +84,12 @@ Gets the previouse dates from the database in format
 @cross_origin()
 def get_historic_date_data():
 
+    print("HERE")
+
     #Get the document from the database
     all_dates = db.collection(u'HistoryData').document("PreviousDates").get()
+
+    print(all_dates)
 
     #Change it to a dictionary
     all_dates = all_dates.to_dict()
