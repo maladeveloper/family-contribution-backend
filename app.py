@@ -7,6 +7,7 @@ from firebase_admin import credentials
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
+from helper_functions import get_refreshed_dates
 
 
 #VARIABLES
@@ -26,6 +27,43 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 def hello():
     return "Hello World!"
 
+
+
+'''
+Initialises the app by passing in logged on user information and setting the dates
+'''
+@app.route('/init', methods= ["GET"])
+@cross_origin()
+def init():
+
+    #Get list of previous dates, refresh them and then add them back to database
+    all_dates_dict = db.collection(u'HistoryData').document("PreviousDates").get().to_dict()
+    
+    db.collection(u'HistoryData').document("PreviousDates").set(get_refreshed_dates(all_dates_dict))
+
+    #Now send back the data of the user
+    user_id = request.args.get("userId")
+
+    return get_user_info(user_id)
+    
+
+@app.route('/getUserInfo', methods=["GET"])
+@cross_origin()
+def get_user_info(user_id = None):
+
+    if not user_id:
+
+        #Get the user id
+        user_id = request.args.get("userId")
+
+    data = db.collection("PersonalInformation").document(user_id).get().to_dict()
+
+    return jsonify(data)
+
+
+
+
+
 '''
 Finds the tax amount given the dictionary of each individual with their income amount
 '''
@@ -43,33 +81,6 @@ def find_tax_amount():
     return jsonify(data)
 
 
-'''
-Gets an object with 
-[
-    dateStr1,dateStr2
-    ...
-]
-and pushes it to database as
-
-'''
-@app.route('/refreshDates', methods=["POST"])
-@cross_origin()
-def refresh_dates():
-
-    #Get the previous dates from the request
-    data = request.json["info"]
-
-    #Create a new dates dict 
-    dates_dict = dict()
-
-    #Form a dictionary from this array
-    for date in data:
-        dates_dict[date] = True
-
-    #Push the dates_dict data
-    db.collection(u'HistoryData').document("PreviousDates").set(dates_dict)
-
-    return jsonify(True)
 
 
 '''
@@ -84,12 +95,10 @@ Gets the previouse dates from the database in format
 @cross_origin()
 def get_historic_date_data():
 
-    print("HERE")
 
     #Get the document from the database
     all_dates = db.collection(u'HistoryData').document("PreviousDates").get()
 
-    print(all_dates)
 
     #Change it to a dictionary
     all_dates = all_dates.to_dict()
@@ -148,17 +157,7 @@ Output - {
         }
 '''
 
-@app.route('/getUserInfo', methods=["GET"])
-@cross_origin()
-def get_user_info():
 
-    #Get the user id
-    user_id = request.args.get("userId")
-    print(user_id)
-
-    data = db.collection("PersonalInformation").document(user_id).get().to_dict()
-
-    return jsonify(data)
 
 
 
