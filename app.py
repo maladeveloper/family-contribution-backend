@@ -139,6 +139,26 @@ def get_date_user_specific_data():
     return jsonify(date_info[user_id])
 
 
+'''
+Get the user info based on the id
+Input - UserId
+Output - {
+            "jobs":[...]
+            ...
+        }
+'''
+
+@app.route('/getUserInfo', methods=["GET"])
+@cross_origin()
+def get_user_info():
+
+    #Get the user id
+    user_id = request.args.get("userId")
+    print(user_id)
+
+    data = db.collection("PersonalInformation").document(user_id).get().to_dict()
+
+    return jsonify(data)
 
 
 
