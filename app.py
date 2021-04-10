@@ -41,6 +41,7 @@ def init():
     
     db.collection(u'HistoryData').document("PreviousDates").set(get_refreshed_dates(all_dates_dict))
 
+    print(get_refreshed_dates(all_dates_dict))
     #Now send back the data of the user
     user_id = request.args.get("userId")
 
@@ -148,15 +149,16 @@ def get_date_user_specific_data():
     return jsonify(date_info[user_id])
 
 
-'''
-Get the user info based on the id
-Input - UserId
-Output - {
-            "jobs":[...]
-            ...
-        }
-'''
 
+@app.route('/updateIncomeSubmission', methods=["GET"])
+@cross_origin()
+def update_income_submission():
+
+    user_id = request.json["userId"]
+
+    income_arr = request.json["incomeArray"]
+
+    return jsonify()
 
 
 
