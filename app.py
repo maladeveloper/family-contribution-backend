@@ -7,7 +7,8 @@ from firebase_admin import credentials
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
-from helper_functions import get_refreshed_dates
+from helper_functions import get_refreshed_dates, get_formatted_dt
+from income_submission_functions import get_income_summary
 
 
 #VARIABLES
@@ -41,10 +42,9 @@ def init():
     
     db.collection(u'HistoryData').document("PreviousDates").set(get_refreshed_dates(all_dates_dict))
 
-    print(get_refreshed_dates(all_dates_dict))
     #Now send back the data of the user
     user_id = request.args.get("userId")
-
+    
     return get_user_info(user_id)
     
 
@@ -124,10 +124,7 @@ Date, user information.
 def get_date_user_specific_data():
 
     #Get the date
-    date = request.args.get("date")
-
-    #Replace the / with a blank in string
-    date = date.replace('/', '')
+    date = get_formatted_dt(request.args.get("date"))
 
     #Get the user id
     user_id = request.args.get("userId")
@@ -150,15 +147,32 @@ def get_date_user_specific_data():
 
 
 
-@app.route('/updateIncomeSubmission', methods=["GET"])
+@app.route('/updateIncomeSubmission', methods=["POST"])
 @cross_origin()
 def update_income_submission():
 
-    user_id = request.json["userId"]
+    ##Get the information from the request body
+    user_id, income_arr, chose_date = [request.json[inf_key] for inf_key in ["userId", "incomeArray", "chosenDate"]]
 
-    income_arr = request.json["incomeArray"]
+    inc_summary = get_income_summary(income_arr)
 
-    return jsonify()
+    chose_date = get_formatted_dt(chose_date)
+
+    #First update the income per user
+    db.collection(u'HistoryData').document(u'UserPayment').collection(user_id).document(chose_date).set(inc_summary)
+
+    #Update the income per date if date is there
+    try:
+        
+        db.collection(u'DateSpecificData').document(chose_date).update({user_id: inc_summary})
+    
+    except:
+        
+        db.collection(u'DateSpecificData').document(chose_date).set({user_id: inc_summary})
+
+
+     
+    return jsonify(True)
 
 
 

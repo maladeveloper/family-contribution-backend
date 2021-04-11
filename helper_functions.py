@@ -51,4 +51,7 @@ def get_refreshed_dates(all_dates_dict):
 
     return all_dates_dict
 
-        
+
+def get_formatted_dt(unf_date):
+
+    return unf_date.replace("/", "_")
