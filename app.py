@@ -8,7 +8,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
 from helper_functions import get_refreshed_dates, get_formatted_dt
-from income_submission_functions import get_income_summary
+from income_submission_functions import get_income_summary, reverse_income_summary
 
 
 #VARIABLES
@@ -142,8 +142,8 @@ def get_date_user_specific_data():
     else:
         return jsonify(False)
 
-    #Only return the user in information
-    return jsonify(date_info[user_id])
+    #Only return the user in information in un-summarised form
+    return jsonify(reverse_income_summary(date_info[user_id]))
 
 
 
