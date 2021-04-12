@@ -146,7 +146,6 @@ def get_date_user_specific_data():
     return jsonify(reverse_income_summary(date_info[user_id]))
 
 
-
 @app.route('/updateIncomeSubmission', methods=["POST"])
 @cross_origin()
 def update_income_submission():
@@ -170,10 +169,33 @@ def update_income_submission():
         
         db.collection(u'DateSpecificData').document(chose_date).set({user_id: inc_summary})
 
-
-     
     return jsonify(True)
 
+'''
+Returns the users who are pending to have paid their income.
+'''
+@app.route('/getPendingUsers', methods=["GET"])
+@cross_origin()
+def get_pending_users():
+
+    date = get_formatted_dt(request.args.get("date"))
+
+    all_users = db.collection('UsefulData').document("AllUsers").get().to_dict()
+    
+    paid_users = db.collection('DateSpecificData').document(date).get().to_dict()
+    
+    not_paid_users = list(set(all_users.keys()).difference(set(paid_users.keys())))
+
+    not_paid_users = [all_users[user_id] for user_id in not_paid_users] #Return the names and not the ids
+    
+    ##Return all the paid user information if everyone has paid
+    if len(not_paid_users) == 0:
+
+        return {"allPaid":True, "Info": {"idToName":all_users, "incomeInfo":paid_users}}
+
+    return jsonify({"allPaid":False, "Info": not_paid_users})
+
+    
 
 
 
