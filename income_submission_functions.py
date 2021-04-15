@@ -5,7 +5,9 @@ f_end_name, f_end_amount, f_end_date = "NAME", "AMOUNT", "DATE"
 amount, date = "amount", "dateAcquired"
 total_inc = "totalIncome"
 
+def get_total_inc(summarised_inc):
 
+    return {name:info[total_inc] for name, info in summarised_inc.items()}
 
 def get_income_summary(income_arr):
 

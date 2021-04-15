@@ -9,10 +9,9 @@ from firebase_admin import credentials, firestore
 from datetime import datetime
 from helper_functions import get_refreshed_dates, get_formatted_dt
 from income_submission_functions import get_income_summary, reverse_income_summary
+from VARIABLES import TOTAL_TAX_PER_WEEK, WEEKS_PER_PAYMENT
 
 
-#VARIABLES
-TOTAL_TAX_PER_WEEK = 700
 
 #Open up the firebase 
 cred = credentials.Certificate("Secrets/secret_key.json")
@@ -183,6 +182,9 @@ def get_pending_users():
     
     ##Return all the paid user information if everyone has paid
     if len(not_paid_users) == 0:
+
+        ##TODO: Get the total tax per person.
+        #income_per_person = {name:total_income for key, info"}
 
         return {"allPaid":True, "Info": {"idToName":all_users, "incomeInfo":paid_users}}
 
