@@ -123,27 +123,20 @@ Date, user information.
 @cross_origin()
 def get_date_user_specific_data():
 
-    #Get the date
-    date = get_formatted_dt(request.args.get("date"))
+    date, user_id  = get_formatted_dt(request.args.get("date")), request.args.get("userId")
 
-    #Get the user id
-    user_id = request.args.get("userId")
+    date_info = db.collection('DateSpecificData').document(date).get().to_dict()
 
-    #Make the call to db to get the date document
-    date_info = db.collection('DateSpecificData').document(date).get()
+    try:
 
-    #Check if the date info exists
-    if date_info.exists:
+        return jsonify(reverse_income_summary(date_info[user_id])) #Only return the user in information in un-summarised form
+    
+    except: #User has not submitted any income for this date yet.
 
-        #If so then change the data into a dictionary
-        date_info = date_info.to_dict()
+        return jsonify([])
 
-    #Otherwise return false
-    else:
-        return jsonify(False)
 
-    #Only return the user in information in un-summarised form
-    return jsonify(reverse_income_summary(date_info[user_id]))
+    
 
 
 @app.route('/updateIncomeSubmission', methods=["POST"])
@@ -193,7 +186,7 @@ def get_pending_users():
 
         return {"allPaid":True, "Info": {"idToName":all_users, "incomeInfo":paid_users}}
 
-    return jsonify({"allPaid":False, "Info": not_paid_users})
+    return jsonify({"allPaid":False, "notPaidUsers": not_paid_users})
 
     
 
