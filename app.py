@@ -8,7 +8,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
 from helper_functions import get_refreshed_dates, get_formatted_dt
-from income_submission_functions import get_income_summary, reverse_income_summary
+from income_submission_functions import get_income_summary, reverse_income_summary, get_inc_per_user, format_users_tax
 from VARIABLES import TOTAL_TAX_PER_WEEK, WEEKS_PER_PAYMENT
 
 
@@ -30,7 +30,8 @@ def hello():
 
 
 '''
-Initialises the app by passing in logged on user information and setting the dates
+Initialises the app by passing in logged on user information and setting the dates.
+Then returns the user information.
 '''
 @app.route('/init', methods= ["GET"])
 @cross_origin()
@@ -41,82 +42,40 @@ def init():
     
     db.collection(u'HistoryData').document("PreviousDates").set(get_refreshed_dates(all_dates_dict))
 
-    #Now send back the data of the user
-    user_id = request.args.get("userId")
     
-    return get_user_info(user_id)
+    return get_user_info(request.args.get("userId")) #Return user information.
     
 
 @app.route('/getUserInfo', methods=["GET"])
 @cross_origin()
 def get_user_info(user_id = None):
 
-    if not user_id:
-
-        #Get the user id
-        user_id = request.args.get("userId")
+    user_id = request.args.get("userId") if not user_id else user_id #Get the user id from url if it hasnt been passed in by function.
 
     data = db.collection("PersonalInformation").document(user_id).get().to_dict()
 
     return jsonify(data)
 
 
-
-
-
-'''
-Finds the tax amount given the dictionary of each individual with their income amount
-'''
-@app.route('/findTaxAmount', methods=["POST"])
-@cross_origin()
-def find_tax_amount():
-    
-    #Get the tax information from the request
-    data = request.json["info"]
-
-    #Find the taxable income from the script
-    apply_tax(data,TOTAL_TAX_PER_WEEK)
-    
-    #Return the data with now the tax there 
-    return jsonify(data)
-
-
-
-
 '''
 Gets the previouse dates from the database in format
-{
-    dateStr1: true,
-    dateStr2: true,
-}
-
+Input: NULL
+Output:[dateStr1, dateStr2, ...]
 '''
 @app.route('/previousDates', methods=["GET"])
 @cross_origin()
 def get_historic_date_data():
 
+    #Since the dates are stored as {dateStr:True,...} in db get only the keys and change to a list.
+    all_dates = list(db.collection(u'HistoryData').document("PreviousDates").get().to_dict().keys())
 
-    #Get the document from the database
-    all_dates = db.collection(u'HistoryData').document("PreviousDates").get()
-
-
-    #Change it to a dictionary
-    all_dates = all_dates.to_dict()
-
-    #Get only the keys i.e the date
-    all_dates = list(all_dates.keys())
-
-    #Return this data as json
     return jsonify(all_dates)
+
 
 '''
 Find the date data based primarily on the date and the then on the user id.
-Input as - 
-specified date,user id, 
-
-Output- 
-Date, user information.
-
+Input: specified date, user id 
+Output: User Income submissions on that date.
 '''
 @app.route('/getDateUserSpecificData', methods=["GET"])
 @cross_origin()
@@ -134,10 +93,11 @@ def get_date_user_specific_data():
 
         return jsonify([])
 
-
-    
-
-
+'''
+Updates the income submission for a specific date and user.
+Input: date, user id
+Output: Bool True
+'''
 @app.route('/updateIncomeSubmission', methods=["POST"])
 @cross_origin()
 def update_income_submission():
@@ -157,14 +117,16 @@ def update_income_submission():
         
         db.collection(u'DateSpecificData').document(chose_date).update({user_id: inc_summary})
     
-    except:
+    except: #Otherwise set the income since it is the first submission for this date.
         
         db.collection(u'DateSpecificData').document(chose_date).set({user_id: inc_summary})
 
     return jsonify(True)
 
 '''
-Returns the users who are pending to have paid their income.
+Returns the users who are pending to have paid their income otherwise directs them to
+get everyone's taxed amount.
+
 '''
 @app.route('/getPendingUsers', methods=["GET"])
 @cross_origin()
@@ -174,23 +136,42 @@ def get_pending_users():
 
     all_users = db.collection('UsefulData').document("AllUsers").get().to_dict()
     
-    paid_users = db.collection('DateSpecificData').document(date).get().to_dict()
+    paid_users_data = db.collection('DateSpecificData').document(date).get().to_dict()
     
-    not_paid_users = list(set(all_users.keys()).difference(set(paid_users.keys())))
+    not_paid_users = list(set(all_users.keys()).difference(set(paid_users_data.keys())))
 
     not_paid_users = [all_users[user_id] for user_id in not_paid_users] #Return the names and not the ids
     
-    ##Return all the paid user information if everyone has paid
+    ##Return tax information if all users have paid.
     if len(not_paid_users) == 0:
 
-        ##TODO: Get the total tax per person.
-        #income_per_person = {name:total_income for key, info"}
+        return find_tax_amount(paid_users_data)
 
-        return {"allPaid":True, "Info": {"idToName":all_users, "incomeInfo":paid_users}}
-
-    return jsonify({"allPaid":False, "notPaidUsers": not_paid_users})
+    return jsonify(format_users_tax(False, not_paid_users=not_paid_users))
 
     
+'''
+Finds the tax amount of ASSUMING all users who have submitted their income.
+Input: NULL
+Output:TODO
+'''
+@app.route('/findTaxAmount', methods=["GET"])
+@cross_origin()
+def find_tax_amount(paid_users_data=None, date=None):
+    
+    if paid_users_data is None:
+
+        date = get_formatted_dt(request.args.get("date"))
+        
+        paid_users_data = db.collection('DateSpecificData').document(date).get().to_dict()
+
+    income_dict = get_inc_per_user(paid_users_data)
+
+    tax_dict = apply_tax(income_dict)
+
+    formatted_tax_dict = format_users_tax(True, users_income=income_dict, users_tax=tax_dict)
+
+    return jsonify(formatted_tax_dict)
 
 
 

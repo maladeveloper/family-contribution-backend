@@ -1,41 +1,25 @@
-
-import numpy as np 
-
+from VARIABLES import TOTAL_TAX_PER_WEEK, WEEKS_PER_PAYMENT
 ##Vars
-TAX_DUE, TAX_PERC = 'taxDue', 'taxPerc'
+DEGREE_POLY = 1
+TOTAL_TAX =  TOTAL_TAX_PER_WEEK * WEEKS_PER_PAYMENT
 ##
 
-test_dict = {
-    'MAL001':750, 
-    'SRI001':800,
-    'ANU001':370,
-    'MAI001':290
-}
+'''
+Applies tax on the user's income and returns the tax value.
+Input:Income per user e.g { MAL001':750, 'SRI001':800, 'ANU001':370, 'MAI001':290}
+Output: Tax per user e.g {'MAL001': 296, 'SRI001': 337, 'ANU001': 72, 'MAI001': 44}
+'''
+def apply_tax(user_dict):
 
+    income_list = [i for i in user_dict.values()]
 
+    div_amount = TOTAL_TAX / sum([income**(DEGREE_POLY + 1) for income in income_list])
 
-def apply_tax(user_dict,TOTAL_TAX_PER_WEEK):
+    tax_dict = dict()
 
-    DEGREE_POLY = 1
-    
-    income_list = np.array([i for i in user_dict.values()])
+    for user_name, user_income  in user_dict.items():
 
-    
-    A = TOTAL_TAX_PER_WEEK / np.sum(income_list**(DEGREE_POLY + 1))
-
-    tax_dict = { name:dict() for name in user_dict.keys()}
-
-    for k,v  in user_dict.items():
-        tax_dict[k][TAX_DUE] = round(A * v**(DEGREE_POLY + 1))
-
-        #Establish the tax percentage as 0 
-        tax_dict[k][TAX_PERC] = 0 
-
-        #Ensure that the income is not zero
-        if user_dict[k] != 0:
-
-            #Use this taxDue to find effective percentage
-            tax_dict[k][TAX_PERC] = tax_dict[k][TAX_DUE] /user_dict[k]
+        tax_dict[user_name] = round(div_amount * user_income ** (DEGREE_POLY + 1))
 
     return tax_dict
 
