@@ -1,12 +1,16 @@
 ##Defined
 from VARIABLES import TOTAL_TAX_PER_WEEK, WEEKS_PER_PAYMENT
 
-##Vars
+##Tax Calculation Vars
 DEGREE_POLY = 1
 TOTAL_TAX =  TOTAL_TAX_PER_WEEK * WEEKS_PER_PAYMENT
 
-##Income Submission Vars
-f_end_name, f_end_amount, f_end_date = "NAME", "AMOUNT", "DATE"
+##Income Submission and Payment Table Vars
+f_end_name = "NAME" #Shared Var
+f_end_amount, f_end_date = , "AMOUNT", "DATE" #Income Submission Vars
+f_end_income, f_end_tax, f_end_tax_perc = "INCOME", "TAX", "TAX_PERC" #Payment table Vars
+
+##Income database Vars
 amount, date = "amount", "dateAcquired"
 total_inc = "totalIncome"
 
@@ -82,6 +86,6 @@ def format_users_tax( paid_status, not_paid_users=None, all_users=None, users_in
         return { all_paid:paid_status, users_paid_not_paid:not_paid_users}
     
     ##Otherwise all users have paid and now zip user income and tax due together.
-    users_dict = {all_users[user_name]:{ income:users_income[user_name], tax_due:users_tax[user_name] } for user_name in users_income.keys()}
-
+    users_dict = {user_name:{ income:users_income[user_name], tax_due:users_tax[user_name] } for user_name in users_income.keys()}
+    
     return {all_paid:paid_status, users_paid_not_paid:users_dict}
