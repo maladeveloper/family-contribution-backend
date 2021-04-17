@@ -85,7 +85,7 @@ def get_pending_users():
     ##Return tax information if all users have paid.
     if len(not_paid_users) == 0:
 
-        return find_tax_amount(paid_users_data)
+        return find_tax_amount(paid_users_data=paid_users_data, all_users=all_users)
 
     return jsonify(format_users_tax(False, not_paid_users=not_paid_users))
 
@@ -97,7 +97,7 @@ Output:TODO
 '''
 @payment_bp.route('/taxAmount', methods=["GET"])
 @cross_origin()
-def find_tax_amount(paid_users_data=None, date=None):
+def find_tax_amount(paid_users_data=None, all_users=None, date=None):
     
     if paid_users_data is None:
 
@@ -109,6 +109,6 @@ def find_tax_amount(paid_users_data=None, date=None):
 
     tax_dict = apply_tax(income_dict)
 
-    formatted_tax_dict = format_users_tax(True, users_income=income_dict, users_tax=tax_dict)
+    formatted_tax_dict = format_users_tax(True, users_income=income_dict, users_tax=tax_dict, all_users=all_users)
 
     return jsonify(formatted_tax_dict)

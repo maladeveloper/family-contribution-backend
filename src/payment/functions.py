@@ -75,13 +75,13 @@ def apply_tax(user_dict):
 '''
 Returns the not paid users in a format that is friendly to the frontend.
 '''
-def format_users_tax( paid_status, not_paid_users=None, users_income=None, users_tax=None ):
+def format_users_tax( paid_status, not_paid_users=None, all_users=None, users_income=None, users_tax=None ):
 
     if not paid_status:
 
         return { all_paid:paid_status, users_paid_not_paid:not_paid_users}
     
     ##Otherwise all users have paid and now zip user income and tax due together.
-    users_dict = {user_name:{ income:users_income[user_name], tax_due:users_tax[user_name] } for user_name in users_income.keys()}
+    users_dict = {all_users[user_name]:{ income:users_income[user_name], tax_due:users_tax[user_name] } for user_name in users_income.keys()}
 
     return {all_paid:paid_status, users_paid_not_paid:users_dict}
