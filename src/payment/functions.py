@@ -7,8 +7,8 @@ TOTAL_TAX =  TOTAL_TAX_PER_WEEK * WEEKS_PER_PAYMENT
 
 ##Income Submission and Payment Table Vars
 f_end_name = "NAME" #Shared Var
-f_end_amount, f_end_date = , "AMOUNT", "DATE" #Income Submission Vars
-f_end_income, f_end_tax, f_end_tax_perc = "INCOME", "TAX", "TAX_PERC" #Payment table Vars
+f_end_amount, f_end_date = "AMOUNT", "DATE" #Income Submission Vars
+f_end_income, f_end_tax, f_end_tax_perc = "INCOME", "TAX_DUE", "TAX_PERC" #Payment table Vars
 
 ##Income database Vars
 amount, date = "amount", "dateAcquired"
@@ -75,6 +75,12 @@ def apply_tax(user_dict):
 
     return tax_dict
 
+def calculate_tax_perc(tax, income):
+
+    tax_perc = 0 if (tax == 0) or (income==0) else round(100*(tax/income))
+
+    return tax_perc
+    
 
 '''
 Returns the not paid users in a format that is friendly to the frontend.
@@ -86,6 +92,17 @@ def format_users_tax( paid_status, not_paid_users=None, all_users=None, users_in
         return { all_paid:paid_status, users_paid_not_paid:not_paid_users}
     
     ##Otherwise all users have paid and now zip user income and tax due together.
-    users_dict = {user_name:{ income:users_income[user_name], tax_due:users_tax[user_name] } for user_name in users_income.keys()}
-    
-    return {all_paid:paid_status, users_paid_not_paid:users_dict}
+    user_info_arr = []
+
+    for user_id in users_income.keys():
+
+        temp_info_dict = { 
+            f_end_name:     all_users[user_id],
+            f_end_income:   users_income[user_id],
+            f_end_tax:      users_tax[user_id], 
+            f_end_tax_perc: calculate_tax_perc(users_tax[user_id], users_income[user_id])
+        }
+
+        user_info_arr.append(temp_info_dict)
+
+    return {all_paid:paid_status, users_paid_not_paid:user_info_arr}
