@@ -65,7 +65,13 @@ def apply_tax(user_dict):
 
     income_list = [i for i in user_dict.values()]
 
-    div_amount = TOTAL_TAX / sum([income**(DEGREE_POLY + 1) for income in income_list])
+    try:
+        
+        div_amount = TOTAL_TAX / sum([income**(DEGREE_POLY + 1) for income in income_list])
+    
+    except ZeroDivisionError: #Triggered if all income is 0.
+
+        return {user_name:0 for user_name in user_dict.keys()}
 
     tax_dict = dict()
 
