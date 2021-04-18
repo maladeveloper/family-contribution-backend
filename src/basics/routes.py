@@ -16,6 +16,14 @@ def hello():
 Initialises the app by passing in logged on user information and setting the dates.
 Then returns the user information.
 '''
+@basics_bp.route('/authId', methods= ["GET"])
+@cross_origin()
+def authorise_id():
+
+    user_id = request.args.get("userId")
+
+    return jsonify(True if user_id in db.collection('UsefulData').document("AllUsers").get().to_dict() else False)
+
 @basics_bp.route('/init', methods= ["GET"])
 @cross_origin()
 def init():
