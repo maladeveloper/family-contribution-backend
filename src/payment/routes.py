@@ -1,7 +1,12 @@
 from flask import Blueprint, current_app, request, jsonify
 from flask_cors import CORS, cross_origin
+import requests
+
 from .functions import get_income_summary, reverse_income_summary, get_inc_per_user, format_users_tax, apply_tax
 from common_functions import get_formatted_dt
+from VARIABLES import BACKEND_URL as BASE_URL
+
+
 
 payment_bp = Blueprint("payment_bp", __name__)
 
@@ -60,6 +65,10 @@ def update_income_submission():
     except: #Otherwise set the income since it is the first submission for this date.
         
         db.collection(u'DateSpecificData').document(chose_date).set({user_id: inc_summary})
+    
+    ##Broadcast this event to all of the clients via dynamic backend.
+    print(requests.get(url=BASE_URL+"incomeUpdateEvent"))
+
 
     return jsonify(True)
 
