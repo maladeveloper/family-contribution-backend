@@ -4,10 +4,21 @@ import datetime
 from VARIABLES import WEEKS_PER_PAYMENT as WEEKS
 from VARIABLES import DATE_FORMAT, DATE_SEPERATOR
 
+#e.g '01/03/2021-07/03/2021' -> (datetime(01/03/2021),datetime(07/03/2021)
+def convert_to_datetime(date_pair):
+
+    return (datetime.datetime.strptime(date_pair.split(DATE_SEPERATOR)[0], DATE_FORMAT), datetime.datetime.strptime(date_pair.split(DATE_SEPERATOR)[1],DATE_FORMAT))
+
+
+#e.g (datetime(01/03/2021),datetime(07/03/2021) -> '01/03/2021-07/03/2021'
+def convert_to_stringtime(date_pair):
+
+    return datetime.datetime.strftime(date_pair[0], DATE_FORMAT) + DATE_SEPERATOR + datetime.datetime.strftime(date_pair[1], DATE_FORMAT)
+
+
 def find_latest_date(all_dates):
         
-    #e.g '01/03/2021-07/03/2021' -> (datetime(01/03/2021),datetime(07/03/2021))
-    datetime_dates = [(datetime.datetime.strptime(cur_date.split(DATE_SEPERATOR)[0], DATE_FORMAT), datetime.datetime.strptime(cur_date.split("-")[1],DATE_FORMAT)) for cur_date in all_dates]
+    datetime_dates = [convert_to_datetime(cur_date) for cur_date in all_dates]
 
     #Get latest date based on second date in each tuple 
     latest_dates = max(datetime_dates, key=lambda dates:dates[1])
@@ -20,6 +31,7 @@ def get_current_dates(all_dates):
 
     #Break with false if current date is before start of latest date (dont need to add any new date)
     if datetime.datetime.now() < (latest_dates[1] + datetime.timedelta(days = 1)) :
+        
         return False
 
     else: #Otherwise keep adding the weeks until it encapsulates current date
@@ -34,6 +46,16 @@ def get_current_dates(all_dates):
 
         return latest_dates_arr 
 
+def set_active_dates(dates_dict):
+
+    latest_string_date = convert_to_stringtime(find_latest_date(dates_dict))
+    
+    new_dates_dict = {date:False for date in dates_dict.keys() if date != latest_string_date}
+
+    new_dates_dict[latest_string_date] = dates_dict[latest_string_date]
+
+    return new_dates_dict
+
 
 def get_refreshed_dates(all_dates_dict):
 
@@ -44,10 +66,10 @@ def get_refreshed_dates(all_dates_dict):
     if(add_curr_dates):
 
         #Stringify the dates and then push them to the database
-        add_curr_dates = datetime.datetime.strftime(add_curr_dates[0], DATE_FORMAT) + DATE_SEPERATOR + datetime.datetime.strftime(add_curr_dates[1], DATE_FORMAT)
+        add_curr_dates = convert_to_stringtime(add_curr_dates)
 
         all_dates_dict[add_curr_dates] = True
 
-    return all_dates_dict
+    return set_active_dates(all_dates_dict)
 
 

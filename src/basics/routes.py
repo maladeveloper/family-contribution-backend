@@ -24,6 +24,7 @@ def authorise_id():
 
     return jsonify(True if user_id in db.collection('UsefulData').document("AllUsers").get().to_dict() else False)
 
+
 @basics_bp.route('/init', methods= ["GET"])
 @cross_origin()
 def init():
@@ -56,7 +57,6 @@ Output:[dateStr1, dateStr2, ...]
 @cross_origin()
 def get_historic_date_data():
 
-    #Since the dates are stored as {dateStr:True,...} in db get only the keys and change to a list.
-    all_dates = list(db.collection(u'HistoryData').document("PreviousDates").get().to_dict().keys())
+    all_dates = db.collection(u'HistoryData').document("PreviousDates").get().to_dict()
 
     return jsonify(all_dates)
