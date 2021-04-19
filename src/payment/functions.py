@@ -1,5 +1,9 @@
+##Built-in
+from statistics import mean
+
 ##Defined
 from VARIABLES import TOTAL_TAX_PER_WEEK, WEEKS_PER_PAYMENT
+from date_functions import convert_to_datetime, convert_to_stringtime, convert_to_db_date, convert_to_str_date
 
 ##Tax Calculation Vars
 DEGREE_POLY = 1
@@ -55,6 +59,11 @@ def get_inc_per_user(paid_users_data):
 
     return {user_name: info[total_inc] for user_name, info in paid_users_data.items()}
         
+
+def get_inc_from_average(date_pays, all_users):
+
+    return {user_name: round(mean([date_pay[user_name][total_inc] for date_pay in date_pays])) for user_name in all_users}
+
 
 '''
 Applies tax on the user's income and returns the tax value.

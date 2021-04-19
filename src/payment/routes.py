@@ -2,8 +2,8 @@ from flask import Blueprint, current_app, request, jsonify
 from flask_cors import CORS, cross_origin
 import requests
 
-from .functions import get_income_summary, reverse_income_summary, get_inc_per_user, format_users_tax, apply_tax
-from common_functions import get_formatted_dt
+from .functions import get_income_summary, reverse_income_summary, get_inc_per_user, format_users_tax, apply_tax, get_inc_from_average
+from date_functions import get_average_dates, convert_to_db_date
 from VARIABLES import BACKEND_URL as BASE_URL
 
 
@@ -26,7 +26,7 @@ Output: User Income submissions on that date.
 @cross_origin()
 def get_date_user_specific_data():
 
-    date, user_id  = get_formatted_dt(request.args.get("date")), request.args.get("userId")
+    date, user_id  = convert_to_db_date(request.args.get("date")), request.args.get("userId")
 
     date_info = db.collection('DateSpecificData').document(date).get().to_dict()
 
@@ -52,7 +52,7 @@ def update_income_submission():
 
     inc_summary = get_income_summary(income_arr)
 
-    chose_date = get_formatted_dt(chose_date)
+    chose_date = convert_to_db_date(chose_date)
 
     #First update the income per user
     db.collection(u'HistoryData').document(u'UserPayment').collection(user_id).document(chose_date).set(inc_summary)
@@ -72,6 +72,7 @@ def update_income_submission():
 
     return jsonify(True)
 
+
 '''
 Returns the users who are pending to have paid their income otherwise directs them to
 get everyone's taxed amount.
@@ -81,7 +82,7 @@ get everyone's taxed amount.
 @cross_origin()
 def get_pending_users():
 
-    date = get_formatted_dt(request.args.get("date"))
+    date = convert_to_db_date(request.args.get("date"))
 
     all_users = db.collection('UsefulData').document("AllUsers").get().to_dict()
     
@@ -94,7 +95,7 @@ def get_pending_users():
     ##Return tax information if all users have paid.
     if len(not_paid_users) == 0:
 
-        return find_tax_amount(paid_users_data=paid_users_data, all_users=all_users)
+        return find_tax_amount(all_users=all_users, date=date)
 
     return jsonify(format_users_tax(False, not_paid_users=not_paid_users))
 
@@ -106,15 +107,23 @@ Output:TODO
 '''
 @payment_bp.route('/taxAmount', methods=["GET"])
 @cross_origin()
-def find_tax_amount(paid_users_data=None, all_users=None, date=None):
+def find_tax_amount(all_users=None, date=None):
     
-    if paid_users_data is None:
+    if all_users is None:
 
-        date = get_formatted_dt(request.args.get("date"))
+        date = convert_to_db_date(request.args.get("date"))
+
+        all_users = db.collection('UsefulData').document("AllUsers").get().to_dict()
         
-        paid_users_data = db.collection('DateSpecificData').document(date).get().to_dict()
+    #paid_users_data = db.collection('DateSpecificData').document(date).get().to_dict()
+    all_dates = db.collection(u'HistoryData').document("PreviousDates").get().to_dict().keys()
 
-    income_dict = get_inc_per_user(paid_users_data)
+    average_dates = get_average_dates(date, all_dates) #Get the dates to average income over
+
+    #Get the paid data for these dates
+    date_pays = [db.collection('DateSpecificData').document(convert_to_db_date(date)).get().to_dict() for date in average_dates]
+
+    income_dict = get_inc_from_average(date_pays, all_users)
 
     tax_dict = apply_tax(income_dict)
 

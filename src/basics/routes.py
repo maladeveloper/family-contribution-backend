@@ -1,7 +1,6 @@
 from flask import Blueprint, current_app, request, jsonify
 from flask_cors import CORS, cross_origin
 from .functions import get_refreshed_dates
-from common_functions import get_formatted_dt
 
 basics_bp = Blueprint("basics_bp", __name__)
 
@@ -11,6 +10,8 @@ db=current_app.db#Get the initialised database.
 @cross_origin()
 def hello():
     return "Hello World!"
+
+
 
 '''
 Initialises the app by passing in logged on user information and setting the dates.
@@ -34,8 +35,9 @@ def init():
     
     db.collection(u'HistoryData').document("PreviousDates").set(get_refreshed_dates(all_dates_dict))
 
-    
     return get_user_info(request.args.get("userId")) #Return user information.
+
+
 
 @basics_bp.route('/userInfo', methods=["GET"])
 @cross_origin()

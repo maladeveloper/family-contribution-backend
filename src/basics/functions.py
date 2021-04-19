@@ -1,19 +1,10 @@
 ##Built-in
 import datetime
+
 ##Defined
 from VARIABLES import WEEKS_PER_PAYMENT as WEEKS
-from VARIABLES import DATE_FORMAT, DATE_SEPERATOR
-
-#e.g '01/03/2021-07/03/2021' -> (datetime(01/03/2021),datetime(07/03/2021)
-def convert_to_datetime(date_pair):
-
-    return (datetime.datetime.strptime(date_pair.split(DATE_SEPERATOR)[0], DATE_FORMAT), datetime.datetime.strptime(date_pair.split(DATE_SEPERATOR)[1],DATE_FORMAT))
-
-
-#e.g (datetime(01/03/2021),datetime(07/03/2021) -> '01/03/2021-07/03/2021'
-def convert_to_stringtime(date_pair):
-
-    return datetime.datetime.strftime(date_pair[0], DATE_FORMAT) + DATE_SEPERATOR + datetime.datetime.strftime(date_pair[1], DATE_FORMAT)
+from date_functions import convert_to_datetime, convert_to_stringtime
+#
 
 
 def find_latest_date(all_dates):
