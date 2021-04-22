@@ -64,6 +64,16 @@ def get_inc_from_average(date_pays, all_users):
 
     return {user_name: round(mean([date_pay[user_name][total_inc] for date_pay in date_pays])) for user_name in all_users}
 
+def min_tax_dicts(tax_1, tax_2):
+
+    for user_name, amount in tax_1.items():
+
+        if tax_2[user_name]< amount:
+
+            tax_1[user_name] = tax_2[user_name]
+    
+    return tax_1
+
 
 '''
 Applies tax on the user's income and returns the tax value.

@@ -1,8 +1,9 @@
 from flask import Blueprint, current_app, request, jsonify
 from flask_cors import CORS, cross_origin
 import requests
+from pprint import pprint
 
-from .functions import get_income_summary, reverse_income_summary, get_inc_per_user, format_users_tax, apply_tax, get_inc_from_average
+from .functions import get_income_summary, reverse_income_summary, get_inc_per_user, format_users_tax, apply_tax, get_inc_from_average, min_tax_dicts
 from date_functions import get_average_dates, convert_to_db_date
 from VARIABLES import BACKEND_URL as BASE_URL
 
@@ -126,6 +127,10 @@ def find_tax_amount(all_users=None, date=None):
     income_dict = get_inc_from_average(date_pays, all_users)
 
     tax_dict = apply_tax(income_dict)
+
+    cur_tax_dict = apply_tax(get_inc_from_average([db.collection('DateSpecificData').document(convert_to_db_date(date)).get().to_dict()], all_users)) #Get the tax dict for current date
+
+    tax_dict = min_tax_dicts(tax_dict, cur_tax_dict)
 
     formatted_tax_dict = format_users_tax(True, users_income=income_dict, users_tax=tax_dict, all_users=all_users)
 
