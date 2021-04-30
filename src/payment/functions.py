@@ -12,7 +12,7 @@ TOTAL_TAX =  TOTAL_TAX_PER_WEEK * WEEKS_PER_PAYMENT
 ##Income Submission and Payment Table Vars
 f_end_name = "NAME" #Shared Var
 f_end_amount, f_end_date = "AMOUNT", "DATE" #Income Submission Vars
-f_end_income, f_end_tax, f_end_tax_perc = "INCOME", "TAX_DUE", "TAX_PERC" #Payment table Vars
+f_end_income, f_end_cur_inc, f_end_tax, f_end_tax_perc = "INCOME", "CUR_INC", "TAX_DUE", "TAX_PERC" #Payment table Vars
 
 ##Income database Vars
 amount, date = "amount", "dateAcquired"
@@ -110,7 +110,7 @@ def calculate_tax_perc(tax, income):
 '''
 Returns the not paid users in a format that is friendly to the frontend.
 '''
-def format_users_tax( paid_status, not_paid_users=None, all_users=None, users_income=None, users_tax=None ):
+def format_users_tax( paid_status, not_paid_users=None, all_users=None, current_income=None, users_income=None, users_tax=None ):
 
     if not paid_status:
 
@@ -124,6 +124,7 @@ def format_users_tax( paid_status, not_paid_users=None, all_users=None, users_in
         temp_info_dict = { 
             f_end_name:     all_users[user_id],
             f_end_income:   users_income[user_id],
+            f_end_cur_inc:  current_income[user_id],
             f_end_tax:      users_tax[user_id], 
             f_end_tax_perc: calculate_tax_perc(users_tax[user_id], users_income[user_id])
         }
