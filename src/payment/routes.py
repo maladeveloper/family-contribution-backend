@@ -125,13 +125,14 @@ def find_tax_amount(all_users=None, date=None):
     date_pays = [db.collection('DateSpecificData').document(convert_to_db_date(date)).get().to_dict() for date in average_dates]
 
     income_dict = get_inc_from_average(date_pays, all_users)
+    
+    #curr_income_dict = get_inc_from_average([db.collection('DateSpecificData').document(convert_to_db_date(date)).get().to_dict()], all_users)
 
-    tax_dict = apply_tax(income_dict)
-
-    cur_tax_dict = apply_tax(get_inc_from_average([db.collection('DateSpecificData').document(convert_to_db_date(date)).get().to_dict()], all_users)) #Get the tax dict for current date
-
-    tax_dict = min_tax_dicts(tax_dict, cur_tax_dict)
-
-    formatted_tax_dict = format_users_tax(True, users_income=income_dict, users_tax=tax_dict, all_users=all_users)
+    #final_income_dict = min_tax_dicts(curr_income_dict,income_dict)
+    final_income_dict  = income_dict
+    
+    tax_dict = apply_tax(final_income_dict)
+    
+    formatted_tax_dict = format_users_tax(True, users_income=final_income_dict, users_tax=tax_dict, all_users=all_users)
 
     return jsonify(formatted_tax_dict)
