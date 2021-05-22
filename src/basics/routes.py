@@ -1,6 +1,6 @@
 from flask import Blueprint, current_app, request, jsonify
 from flask_cors import CORS, cross_origin
-from .functions import get_refreshed_dates
+from .functions import get_refreshed_dates, order_dates
 
 basics_bp = Blueprint("basics_bp", __name__)
 
@@ -60,5 +60,16 @@ Output:[dateStr1, dateStr2, ...]
 def get_historic_date_data():
 
     all_dates = db.collection(u'HistoryData').document("PreviousDates").get().to_dict()
+    
+    sorted_dates = order_dates(all_dates.keys(), descend=True)
 
-    return jsonify(all_dates)
+    #put the bool in the sorted date.
+    sorted_arr = [0] * len(sorted_dates)
+
+    for i in range(len(sorted_dates)):
+        
+        date = sorted_dates[i]
+
+        sorted_arr[i] = (date, all_dates[date])
+
+    return jsonify(sorted_arr)

@@ -6,7 +6,18 @@ from VARIABLES import WEEKS_PER_PAYMENT as WEEKS
 from date_functions import convert_to_datetime, convert_to_stringtime
 #
 
+def order_dates(dates, descend=False):
 
+    datetime_dates = [convert_to_datetime(cur_date) for cur_date in dates]
+
+    sorted_dates = sorted(datetime_dates, key=lambda dates:dates[1])
+
+    if descend:
+        sorted_dates.reverse()
+
+    #convert back to strs 
+    return [convert_to_stringtime(date) for date in sorted_dates]
+    
 def find_latest_date(all_dates):
         
     datetime_dates = [convert_to_datetime(cur_date) for cur_date in all_dates]
